@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph Dims["Conformed Dimensions (Star-Denormalized)"]
+        direction TB
+        DimStockItem["<b>Dim.StockItem</b><br/>Grain: 1 row per stock item<br/><i>StockItemID, StockItemName, Brand,<br/>Size, IsChillerStock, LeadTimeDays,<br/>UnitPrice, RecommendedRetailPrice</i>"]
+        DimSupplier["<b>Dim.Supplier</b><br/>Grain: 1 row per supplier<br/><i>SupplierID, SupplierName,<br/>SupplierCategoryName,<br/>PaymentDays, WebsiteURL</i>"]
+        DimDate["<b>Dim.Date</b><br/>Grain: 1 row per calendar date<br/><i>FullDate, CalendarYear,<br/>CalendarMonth, DayOfMonth, DayOfWeek</i>"]
+    end
+
+    subgraph Facts["Fact Tables (Different Grains & Additivity)"]
+        direction TB
+        FactTxn["<b>Fact.StockItemTransactions</b><br/>Grain: 1 row per movement event<br/>Additive across time<br/><i>StockItemTransactionID, Quantity,<br/>TransactionOccurredWhen,<br/>TransactionTypeID, InvoiceID,<br/>PurchaseOrderID, CustomerID</i>"]
+        FactSnap["<b>Fact.InventorySnapshots</b><br/>Grain: 1 row per item snapshot<br/>Semi-additive across time<br/><i>QuantityOnHand, BinLocation,<br/>LastStocktakeQuantity, LastCostPrice,<br/>TotalStockholdingValue, ReorderDeficit,<br/>SnapshotDate</i>"]
+    end
+
+    DimStockItem -->|StockItemID| FactTxn
+    DimSupplier -->|SupplierID| FactTxn
+    DimDate -.->|"TransactionOccurredWhen (date)"| FactTxn
+
+    DimStockItem -->|StockItemID| FactSnap
+    DimSupplier -->|SupplierID| FactSnap
+    DimDate -.->|"SnapshotDate (date)"| FactSnap

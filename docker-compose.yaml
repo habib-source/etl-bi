@@ -1,0 +1,146 @@
+include:
+  - superset.yaml
+services:
+  spark:
+    restart: always
+    image: spark:4.2.0-scala2.13-java25-python3-ubuntu
+    container_name: spark
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    ports:
+      - "8080:8080"
+    environment:
+      - SPARK_PUBLIC_DNS=localhost
+  spark-worker:
+    restart: always
+    image: spark:4.2.0-scala2.13-java25-python3-ubuntu
+    container_name: spark-worker
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark:7077
+    ports:
+      - "8081:8081"
+    depends_on:
+      - spark
+    environment:
+      - SPARK_WORKER_CORES=3
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_PUBLIC_DNS=localhost
+  spark-runner:
+    restart: always
+    image: spark:4.2.0-scala2.13-java25-python3-ubuntu
+    container_name: spark-runner
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./oddjobs-etl/:/opt/spark/work-dir
+  spark-connect:
+    restart: always
+    image: spark:4.2.0-scala2.13-java25-python3-ubuntu
+    container_name: spark-connect
+    command: >
+      /opt/spark/sbin/start-connect-server.sh --wait
+      --master spark://spark:7077
+      --conf spark.connect.grpc.binding.address=0.0.0.0
+      --conf spark.connect.grpc.binding.port=15002
+    ports:
+      - "15002:15002"
+      - "4040:4040"
+    depends_on:
+      - spark
+      - spark-worker
+    environment:
+      - SPARK_PUBLIC_DNS=localhost
+  wide-world-importers-db:
+    restart: always
+    build:
+      context: ./
+    container_name: wide-world-importers-db
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: Dev4oddJob
+      MSSQL_PID: EnterpriseDeveloper
+    volumes:
+      - db:/var/opt/mssql
+  data-warehouse-init:
+    container_name: data-warehouse-init
+    build:
+      context: ./docker/dw/
+    command: ./entrypoint.sh
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: Dev4oddJob
+      MSSQL_PID: EnterpriseDeveloper
+    depends_on:
+      - data-warehouse
+  data-warehouse:
+    restart: always
+    container_name: data-warehouse
+    image: mcr.microsoft.com/mssql/server:2025-CU9-ubuntu-24.04
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: Dev4oddJob
+      MSSQL_PID: EnterpriseDeveloper
+      MSSQL_DB: WideWorldImportersDW
+    volumes:
+      - dw:/var/opt/mssql
+    ports:
+      - "1433:1433"
+
+#superset_app bash
+#root@52582e883422:/app# superset set_database_uri \
+#  --database_name "Cube Core" \
+#  --uri "postgresql://superset:Dev4oddJob@cube:15432/db"
+  cube:
+    container_name: cube
+    restart: always
+    image: cubejs/cube:v1.8
+    ports:
+      - "4000:4000"
+      - "15432:15432"
+    environment:
+      CUBEJS_DEV_MODE: true
+      # mssql integ
+      CUBEJS_DB_TYPE: mssql
+      CUBEJS_DB_HOST: data-warehouse
+      CUBEJS_DB_PORT: 1433
+      CUBEJS_DB_NAME: WideWorldImportersDW
+      CUBEJS_DB_USER: sa
+      CUBEJS_DB_PASS: Dev4oddJob
+      # pg endpoint for superset
+      CUBEJS_PG_SQL_PORT: 15432
+      CUBEJS_SQL_USER: superset
+      CUBEJS_SQL_PASSWORD: Dev4oddJob
+  dbgate:
+    image: dbgate/dbgate:latest
+    container_name: dbgate
+    restart: unless-stopped
+    depends_on:
+      - wide-world-importers-db
+      - data-warehouse
+    ports:
+      - "3000:3000"
+    volumes:
+      - dbgate_data:/root/.dbgate
+    environment:
+      # LOGIN: "admin"
+      # PASSWORD: "WebUIPassword123!"
+
+      CONNECTIONS: "wwdb,dw"
+
+      LABEL_wwdb: "wide-world-importers-db SQL Server"
+      SERVER_wwdb: "wide-world-importers-db"
+      PORT_wwdb: "1433"
+      USER_wwdb: "sa"
+      PASSWORD_wwdb: "Dev4oddJob"
+      ENGINE_wwdb: "mssql@dbgate-plugin-mssql"
+
+      LABEL_dw: "data-warehouse SQL Server"
+      SERVER_dw: "data-warehouse"
+      PORT_dw: "1433"
+      USER_dw: "sa"
+      PASSWORD_dw: "Dev4oddJob"
+      ENGINE_dw: "mssql@dbgate-plugin-mssql"
+
+volumes:
+  db:
+  dw:
+  dbgate_data:
