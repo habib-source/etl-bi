@@ -1,0 +1,42 @@
+cubes:
+  - name: dim_supplier
+    sql_table: dw.DimSupplier
+    public: false
+
+    dimensions:
+      - name: supplier_key
+        sql: SupplierKey
+        type: number
+        primary_key: true
+
+      - name: supplier_id
+        sql: SupplierID
+        type: number
+
+      - name: supplier_name
+        sql: SupplierName
+        type: string
+
+      - name: supplier_category_name
+        sql: SupplierCategoryName
+        type: string
+
+      - name: delivery_method_name
+        sql: DeliveryMethodName
+        type: string
+
+      - name: payment_days
+        sql: PaymentDays
+        type: number
+
+      - name: delivery_city_name
+        sql: DeliveryCityName
+        type: string
+
+      - name: postal_city_name
+        sql: PostalCityName
+        type: string
+
+      - name: website_url
+        sql: WebsiteURL
+        type: string

@@ -1,0 +1,18 @@
+cubes:
+  - name: dim_warehouse_location
+    sql_table: dw.DimWarehouseLocation
+    public: false
+
+    dimensions:
+      - name: warehouse_location_key
+        sql: WarehouseLocationKey
+        type: number
+        primary_key: true
+
+      - name: bin_location
+        sql: BinLocation
+        type: string
+
+      - name: is_chiller_stock
+        sql: IsChillerStock
+        type: boolean

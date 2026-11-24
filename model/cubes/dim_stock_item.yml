@@ -1,0 +1,74 @@
+cubes:
+  - name: dim_stock_item
+    sql_table: dw.DimStockItem
+    public: false
+
+    dimensions:
+      - name: stock_item_key
+        sql: StockItemKey
+        type: number
+        primary_key: true
+
+      - name: stock_item_id
+        sql: StockItemID
+        type: number
+
+      - name: stock_item_name
+        sql: StockItemName
+        type: string
+
+      - name: brand
+        sql: Brand
+        type: string
+
+      - name: size
+        sql: Size
+        type: string
+
+      - name: color_name
+        sql: ColorName
+        type: string
+
+      - name: unit_package_name
+        sql: UnitPackageName
+        type: string
+
+      - name: outer_package_name
+        sql: OuterPackageName
+        type: string
+
+      - name: stock_group_names
+        sql: StockGroupNames
+        type: string
+
+      - name: is_chiller_stock
+        sql: IsChillerStock
+        type: boolean
+
+      - name: lead_time_days
+        sql: LeadTimeDays
+        type: number
+
+      - name: quantity_per_outer
+        sql: QuantityPerOuter
+        type: number
+
+      - name: tax_rate
+        sql: TaxRate
+        type: number
+
+      - name: unit_price
+        sql: UnitPrice
+        type: number
+
+      - name: recommended_retail_price
+        sql: RecommendedRetailPrice
+        type: number
+
+      - name: typical_weight_per_unit
+        sql: TypicalWeightPerUnit
+        type: number
+
+      - name: barcode
+        sql: Barcode
+        type: string

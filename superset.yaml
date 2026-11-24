@@ -28,6 +28,7 @@ x-superset-image: &superset-image apache/superset:${TAG:-latest}
 x-superset-volumes:
   &superset-volumes # /app/pythonpath_docker will be appended to the PYTHONPATH in the final container
   - superset_home:/app/superset_home
+  - ./docker/requirements-local.txt:/app/docker/requirements-local.txt
 x-superset-environment: &superset-environment
   # Tagged images must use their bundled packages rather than host bind mounts.
   DEV_MODE: "false"

@@ -1,0 +1,73 @@
+views:
+  - name: stock_transactions
+    description: Inventory movements, holding value, and reorder status across stock items, suppliers, locations, and dates.
+    public: true
+    cubes:
+      - join_path: fact_stock_item_transactions
+        includes:
+          - transaction_occurred_when
+          - customer_id
+          - invoice_id
+          - purchase_order_id
+          - transaction_count
+          - total_transaction_quantity
+          - avg_transaction_quantity
+          - total_quantity_on_hand
+          - avg_quantity_on_hand
+          - total_stock_holding_value
+          - avg_stock_holding_value
+          - total_reorder_deficit
+          - avg_last_cost_price
+
+      - join_path: fact_stock_item_transactions.dim_stock_item
+        prefix: true
+        includes:
+          - stock_item_id
+          - stock_item_name
+          - brand
+          - size
+          - color_name
+          - unit_package_name
+          - outer_package_name
+          - stock_group_names
+          - is_chiller_stock
+          - lead_time_days
+          - unit_price
+          - recommended_retail_price
+
+      - join_path: fact_stock_item_transactions.dim_supplier
+        prefix: true
+        includes:
+          - supplier_id
+          - supplier_name
+          - supplier_category_name
+          - delivery_method_name
+          - payment_days
+          - delivery_city_name
+          - postal_city_name
+
+      - join_path: fact_stock_item_transactions.dim_warehouse_location
+        prefix: true
+        includes:
+          - bin_location
+          - is_chiller_stock
+
+      - join_path: fact_stock_item_transactions.dim_transaction_type
+        prefix: true
+        includes:
+          - transaction_type_id
+          - transaction_type_name
+
+      - join_path: fact_stock_item_transactions.dim_date
+        prefix: true
+        includes:
+          - full_date
+          - day_of_month
+          - day_name
+          - week_of_year
+          - month_number
+          - month_name
+          - quarter_number
+          - quarter_name
+          - calendar_year
+          - is_weekend

@@ -1,0 +1,18 @@
+cubes:
+  - name: dim_transaction_type
+    sql_table: dw.DimTransactionType
+    public: false
+
+    dimensions:
+      - name: transaction_type_key
+        sql: TransactionTypeKey
+        type: number
+        primary_key: true
+
+      - name: transaction_type_id
+        sql: TransactionTypeID
+        type: number
+
+      - name: transaction_type_name
+        sql: TransactionTypeName
+        type: string

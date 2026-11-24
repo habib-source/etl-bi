@@ -1,0 +1,137 @@
+cubes:
+  - name: fact_stock_item_transactions
+    sql_table: dw.FactStockItemTransactions
+    public: false
+    refresh_key:
+      every: 1 hour
+
+    joins:
+      - name: dim_date
+        sql: "{CUBE}.TransactionDateKey = {dim_date.date_key}"
+        relationship: many_to_one
+
+      - name: dim_stock_item
+        sql: "{CUBE}.StockItemKey = {dim_stock_item.stock_item_key}"
+        relationship: many_to_one
+
+      - name: dim_supplier
+        sql: "{CUBE}.SupplierKey = {dim_supplier.supplier_key}"
+        relationship: many_to_one
+
+      - name: dim_warehouse_location
+        sql: "{CUBE}.WarehouseLocationKey = {dim_warehouse_location.warehouse_location_key}"
+        relationship: many_to_one
+
+      - name: dim_transaction_type
+        sql: "{CUBE}.TransactionTypeKey = {dim_transaction_type.transaction_type_key}"
+        relationship: many_to_one
+
+    dimensions:
+      - name: stock_item_transaction_key
+        sql: StockItemTransactionKey
+        type: number
+        primary_key: true
+
+      - name: stock_item_transaction_id
+        sql: StockItemTransactionID
+        type: number
+
+      - name: transaction_date_key
+        sql: TransactionDateKey
+        type: number
+
+      - name: customer_id
+        sql: CustomerID
+        type: number
+
+      - name: invoice_id
+        sql: InvoiceID
+        type: number
+
+      - name: purchase_order_id
+        sql: PurchaseOrderID
+        type: number
+
+      - name: transaction_occurred_when
+        sql: TransactionOccurredWhen
+        type: time
+
+      - name: reorder_level
+        sql: ReorderLevel
+        type: number
+
+      - name: target_stock_level
+        sql: TargetStockLevel
+        type: number
+
+      - name: last_cost_price
+        sql: LastCostPrice
+        type: number
+
+      - name: quantity_on_hand
+        sql: QuantityOnHand
+        type: number
+
+      - name: stock_holding_value
+        sql: StockHoldingValue
+        type: number
+
+      - name: reorder_deficit
+        sql: ReorderDeficit
+        type: number
+
+    measures:
+      - name: transaction_count
+        type: count
+
+      - name: total_transaction_quantity
+        sql: TransactionQuantity
+        type: sum
+
+      - name: avg_transaction_quantity
+        sql: TransactionQuantity
+        type: avg
+
+      - name: total_quantity_on_hand
+        sql: QuantityOnHand
+        type: sum
+
+      - name: avg_quantity_on_hand
+        sql: QuantityOnHand
+        type: avg
+
+      - name: total_stock_holding_value
+        sql: StockHoldingValue
+        type: sum
+
+      - name: avg_stock_holding_value
+        sql: StockHoldingValue
+        type: avg
+
+      - name: total_reorder_deficit
+        sql: ReorderDeficit
+        type: sum
+
+      - name: avg_last_cost_price
+        sql: LastCostPrice
+        type: avg
+
+    pre_aggregations:
+      - name: daily_stock_by_item_supplier
+        measures:
+          - CUBE.transaction_count
+          - CUBE.total_transaction_quantity
+          - CUBE.total_quantity_on_hand
+          - CUBE.total_stock_holding_value
+          - CUBE.total_reorder_deficit
+        dimensions:
+          - dim_stock_item.stock_item_name
+          - dim_stock_item.brand
+          - dim_supplier.supplier_name
+          - dim_warehouse_location.bin_location
+          - dim_transaction_type.transaction_type_name
+        time_dimension: CUBE.transaction_occurred_when
+        granularity: day
+        partition_granularity: month
+        refresh_key:
+          every: 1 hour

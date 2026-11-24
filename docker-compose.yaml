@@ -99,6 +99,8 @@ services:
     ports:
       - "4000:4000"
       - "15432:15432"
+    volumes:
+      - ./model:/cube/conf/model
     environment:
       CUBEJS_DEV_MODE: true
       # mssql integ

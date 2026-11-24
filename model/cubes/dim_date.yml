@@ -1,0 +1,54 @@
+cubes:
+  - name: dim_date
+    sql_table: dw.DimDate
+    public: false
+
+    dimensions:
+      - name: date_key
+        sql: DateKey
+        type: number
+        primary_key: true
+
+      - name: full_date
+        sql: FullDate
+        type: time
+
+      - name: day_of_month
+        sql: DayOfMonth
+        type: number
+
+      - name: day_name
+        sql: DayName
+        type: string
+
+      - name: day_of_week
+        sql: DayOfWeek
+        type: number
+
+      - name: week_of_year
+        sql: WeekOfYear
+        type: number
+
+      - name: month_number
+        sql: MonthNumber
+        type: number
+
+      - name: month_name
+        sql: MonthName
+        type: string
+
+      - name: quarter_number
+        sql: QuarterNumber
+        type: number
+
+      - name: quarter_name
+        sql: QuarterName
+        type: string
+
+      - name: calendar_year
+        sql: CalendarYear
+        type: number
+
+      - name: is_weekend
+        sql: IsWeekend
+        type: boolean
