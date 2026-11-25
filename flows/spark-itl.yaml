@@ -1,0 +1,17 @@
+id: external_spark_etl
+namespace: data.pipelines
+
+tasks:
+  - id: submit_cluster_job
+    type: io.kestra.plugin.spark.SparkSubmit
+    master: spark://spark:7077
+    deployMode: CLUSTER
+    mainResource: /opt/spark/work-dir/src/etl.py
+    configurations:
+      spark.jars.packages: com.microsoft.sqlserver:mssql-jdbc:13.6.2.jre11
+    resume: true
+
+triggers:
+  - id: daily_schedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "*/3 * * * *"
