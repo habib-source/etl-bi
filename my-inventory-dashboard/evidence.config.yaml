@@ -1,0 +1,9 @@
+project:
+  name: "my-inventory-dashboard"
+  evidence: "0.12.2"
+
+pages: ./pages
+
+# Random id so Evidence can count deployments of this project, not people. Remove to opt out: https://docs.evidence.studio/cli#telemetry
+telemetry:
+  id: "80a9988b-e5da-4270-aa41-7b70ba0c09d4"

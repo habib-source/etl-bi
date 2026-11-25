@@ -1,0 +1,174 @@
+digraph StockItemTransactionsStar {
+    graph [
+        layout=neato;
+        overlap=scale;
+        splines=true;
+        pad=0.1;
+        fontname="Helvetica,Arial,sans-serif";
+    ];
+
+    node [
+        shape=plaintext;
+        fontname="Helvetica,Arial,sans-serif";
+        fontsize=9;
+    ];
+
+    edge [
+        fontname="Helvetica,Arial,sans-serif";
+        fontsize=8;
+        color="#475569";
+        penwidth=1.2;
+    ];
+
+    // Top-Left: DimDate
+    DimDate [
+        pos="-2.15,0.65!";
+        label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD BGCOLOR="#1E3A8A"><FONT COLOR="#FFFFFF"><B>dw.DimDate</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#EFF6FF"><B>PK DateKey</B> : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">FullDate : DATE</TD></TR>
+            <TR><TD ALIGN="LEFT">DayOfMonth : TINYINT</TD></TR>
+            <TR><TD ALIGN="LEFT">DayName : VARCHAR(10)</TD></TR>
+            <TR><TD ALIGN="LEFT">DayOfWeek : TINYINT</TD></TR>
+            <TR><TD ALIGN="LEFT">WeekOfYear : TINYINT</TD></TR>
+            <TR><TD ALIGN="LEFT">MonthNumber : TINYINT</TD></TR>
+            <TR><TD ALIGN="LEFT">MonthName : VARCHAR(10)</TD></TR>
+            <TR><TD ALIGN="LEFT">QuarterNumber : TINYINT</TD></TR>
+            <TR><TD ALIGN="LEFT">QuarterName : VARCHAR(6)</TD></TR>
+            <TR><TD ALIGN="LEFT">CalendarYear : SMALLINT</TD></TR>
+            <TR><TD ALIGN="LEFT">IsWeekend : BIT</TD></TR>
+        </TABLE>
+    >];
+
+    // Top-Right: DimStockItem
+    DimStockItem [
+        pos="2.15,0.65!";
+        label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD BGCOLOR="#1E3A8A"><FONT COLOR="#FFFFFF"><B>dw.DimStockItem</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#EFF6FF"><B>PK StockItemKey</B> : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">StockItemID : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">StockItemName : NVARCHAR(100)</TD></TR>
+            <TR><TD ALIGN="LEFT">Brand : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">Size : NVARCHAR(20)</TD></TR>
+            <TR><TD ALIGN="LEFT">ColorName : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">UnitPackageName : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">OuterPackageName : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">StockGroupNames : NVARCHAR(400)</TD></TR>
+            <TR><TD ALIGN="LEFT">IsChillerStock : BIT</TD></TR>
+            <TR><TD ALIGN="LEFT">LeadTimeDays : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">QuantityPerOuter : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">TaxRate : DECIMAL(18,3)</TD></TR>
+            <TR><TD ALIGN="LEFT">UnitPrice : DECIMAL(18,2)</TD></TR>
+            <TR><TD ALIGN="LEFT">RecommendedRetailPrice : DECIMAL(18,2)</TD></TR>
+            <TR><TD ALIGN="LEFT">TypicalWeightPerUnit : DECIMAL(18,3)</TD></TR>
+            <TR><TD ALIGN="LEFT">Barcode : NVARCHAR(50)</TD></TR>
+        </TABLE>
+    >];
+
+    // Bottom-Left: DimSupplier
+    DimSupplier [
+        pos="-2.15,-0.65!";
+        label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD BGCOLOR="#1E3A8A"><FONT COLOR="#FFFFFF"><B>dw.DimSupplier</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#EFF6FF"><B>PK SupplierKey</B> : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">SupplierID : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">SupplierName : NVARCHAR(100)</TD></TR>
+            <TR><TD ALIGN="LEFT">SupplierCategoryName : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">DeliveryMethodName : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">PaymentDays : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">DeliveryCityName : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">PostalCityName : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">WebsiteURL : NVARCHAR(256)</TD></TR>
+        </TABLE>
+    >];
+
+    // Center: FactStockItemTransactions
+    FactStockItemTransactions [
+        pos="0.0,0.0!";
+        label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD BGCOLOR="#0F766E"><FONT COLOR="#FFFFFF"><B>dw.FactStockItemTransactions</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#F0FDFA"><B>PK StockItemTransactionKey</B> : BIGINT</TD></TR>
+            <TR><TD ALIGN="LEFT">StockItemTransactionID : INT</TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#FEF9C3"><B>FK TransactionDateKey</B> : INT [IDX]</TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#FEF9C3"><B>FK StockItemKey</B> : INT [IDX]</TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#FEF9C3"><B>FK SupplierKey</B> : INT [IDX]</TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#FEF9C3"><B>FK WarehouseLocationKey</B> : INT</TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#FEF9C3"><B>FK TransactionTypeKey</B> : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">CustomerID : INT (NULL)</TD></TR>
+            <TR><TD ALIGN="LEFT">InvoiceID : INT (NULL)</TD></TR>
+            <TR><TD ALIGN="LEFT">PurchaseOrderID : INT (NULL)</TD></TR>
+            <TR><TD ALIGN="LEFT">TransactionOccurredWhen : DATETIME2(7)</TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#F8FAFC"><I>TransactionQuantity : DECIMAL(18,3)</I></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#F8FAFC"><I>QuantityOnHand : DECIMAL(18,3)</I></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#F8FAFC"><I>LastCostPrice : DECIMAL(18,2)</I></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#F8FAFC"><I>ReorderLevel : DECIMAL(18,3)</I></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#F8FAFC"><I>TargetStockLevel : DECIMAL(18,3)</I></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#F8FAFC"><I>StockHoldingValue : DECIMAL(18,2)</I></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#F8FAFC"><I>ReorderDeficit : DECIMAL(18,3)</I></TD></TR>
+        </TABLE>
+    >];
+
+    // Bottom-Right: DimWarehouseLocation
+    DimWarehouseLocation [
+        pos="2.15,-0.65!";
+        label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD BGCOLOR="#1E3A8A"><FONT COLOR="#FFFFFF"><B>dw.DimWarehouseLocation</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#EFF6FF"><B>PK WarehouseLocationKey</B> : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">BinLocation : NVARCHAR(20)</TD></TR>
+            <TR><TD ALIGN="LEFT">IsChillerStock : BIT</TD></TR>
+        </TABLE>
+    >];
+
+    // Bottom-Center: DimTransactionType
+    DimTransactionType [
+        pos="0.0,-2.35!";
+        label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD BGCOLOR="#1E3A8A"><FONT COLOR="#FFFFFF"><B>dw.DimTransactionType</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#EFF6FF"><B>PK TransactionTypeKey</B> : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">TransactionTypeID : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">TransactionTypeName : NVARCHAR(50)</TD></TR>
+        </TABLE>
+    >];
+
+    // Relationships (Many facts -> One dimension)
+    FactStockItemTransactions -> DimDate [
+        label=" DateKey ",
+        arrowhead="crow",
+        arrowtail="tee",
+        dir="both"
+    ];
+
+    FactStockItemTransactions -> DimStockItem [
+        label=" StockItemKey ",
+        arrowhead="crow",
+        arrowtail="tee",
+        dir="both"
+    ];
+
+    FactStockItemTransactions -> DimSupplier [
+        label=" SupplierKey ",
+        arrowhead="crow",
+        arrowtail="tee",
+        dir="both"
+    ];
+
+    FactStockItemTransactions -> DimWarehouseLocation [
+        label=" WarehouseLocationKey ",
+        arrowhead="crow",
+        arrowtail="tee",
+        dir="both"
+    ];
+
+    FactStockItemTransactions -> DimTransactionType [
+        label=" TransactionTypeKey ",
+        arrowhead="crow",
+        arrowtail="tee",
+        dir="both"
+    ];
+}

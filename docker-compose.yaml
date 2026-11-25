@@ -87,11 +87,24 @@ services:
       MSSQL_DB: WideWorldImportersDW
     volumes:
       - dw:/var/opt/mssql
-
-#superset_app bash
-#root@52582e883422:/app# superset set_database_uri \
-#  --database_name "Cube Core" \
-#  --uri "postgresql://superset:Dev4oddJob@cube:15432/db"
+  evidence:
+    image: evidencedev/serve:0.12.2
+    user: "1000:998"
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      EVIDENCE_BASIC_USER: admin
+      EVIDENCE_BASIC_PASSWORD: admin
+      CUBE_HOST: cube
+      CUBE_DATABASE: cube
+      CUBE_USER: superset
+      CUBE_PASSWORD: Dev4oddJob
+      CUBE_SSLMODE: disable
+    volumes:
+      - ./my-inventory-dashboard:/project
+    depends_on:
+      - cube
   cube:
     container_name: cube
     restart: always
@@ -144,6 +157,7 @@ services:
       USER_dw: "sa"
       PASSWORD_dw: "Dev4oddJob"
       ENGINE_dw: "mssql@dbgate-plugin-mssql"
+
 
 volumes:
   db:

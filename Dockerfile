@@ -1,4 +1,4 @@
-From mcr.microsoft.com/mssql/server:2025-CU9-ubuntu-24.04
+FROM mcr.microsoft.com/mssql/server:2025-CU9-ubuntu-24.04
 USER root
 RUN apt-get update && apt-get install -y curl
 RUN mkdir /mssql-server-setup-scripts.d
