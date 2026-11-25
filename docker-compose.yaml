@@ -34,26 +34,12 @@ services:
     volumes:
       - ./WideWorldImporters-etl:/opt/spark/work-dir
 
-#  spark-connect:
-#    restart: always
-#    image: spark:4.2.0-scala2.13-java25-python3-ubuntu
-#    container_name: spark-connect
-#    command: >
-#      /opt/spark/sbin/start-connect-server.sh --wait
-#      --master spark://spark:7077
-#      --conf spark.connect.grpc.binding.address=0.0.0.0
-#      --conf spark.connect.grpc.binding.port=15002
-#    ports:
-#      - "15002:15002"
-#      - "4040:4040"
-#    depends_on:
-#      - spark
-#      - spark-worker
-#    environment:
-#      - SPARK_PUBLIC_DNS=localhost
 
 # docker exec -it wide-world-importers-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Dev4oddJob" -C -W -Q "USE WideWorldImporters; SELECT TABLE_SCHEMA + '.' + TABLE_NAME AS TableName, STRING_AGG(COLUMN_NAME, ', ') WITHIN GROUP (ORDER BY ORDINAL_POSITION) AS Columns FROM INFORMATION_SCHEMA.COLUMNS GROUP BY TABLE_SCHEMA, TABLE_NAME ORDER BY TABLE_SCHEMA, TABLE_NAME;"
 
+
+# test: docker exec -i wide-world-importers-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Dev4oddJob" -C -b -W < seed_wwi.sql
+# clean up test: docker exec -i wide-world-importers-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Dev4oddJob" -C -b -W < cleanup_wwi.sql
   wide-world-importers-db:
     restart: always
     build:
@@ -65,6 +51,8 @@ services:
       MSSQL_PID: EnterpriseDeveloper
     volumes:
       - db:/var/opt/mssql
+
+
   data-warehouse-init:
     container_name: data-warehouse-init
     build:
