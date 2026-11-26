@@ -2,6 +2,7 @@ cubes:
   - name: fact_stock_item_transactions
     sql_table: dw.FactStockItemTransactions
     public: false
+    description: Granular inventory movement ledger capturing stock inflows, outflows, on-hand balances, valuation, and reorder deficits.
     refresh_key:
       every: 1 hour
 
@@ -31,90 +32,112 @@ cubes:
         sql: StockItemTransactionKey
         type: number
         primary_key: true
+        description: Surrogate primary key uniquely identifying each inventory transaction row.
 
       - name: stock_item_transaction_id
         sql: StockItemTransactionID
         type: number
+        description: Natural transaction identifier from the operational inventory ledger.
 
       - name: transaction_date_key
         sql: TransactionDateKey
         type: number
+        description: Foreign key referencing the calendar date in dim_date.
 
       - name: customer_id
         sql: CustomerID
         type: number
+        description: Degenerate customer identifier associated with outbound customer transactions (null for supplier receipts).
 
       - name: invoice_id
         sql: InvoiceID
         type: number
+        description: Degenerate sales invoice identifier linked to customer stock issues.
 
       - name: purchase_order_id
         sql: PurchaseOrderID
         type: number
+        description: Degenerate purchase order identifier linked to inbound supplier stock receipts.
 
       - name: transaction_occurred_when
         sql: TransactionOccurredWhen
         type: time
+        description: Exact timestamp when the inventory transaction was recorded.
 
       - name: reorder_level
         sql: ReorderLevel
         type: number
+        description: Minimum stock threshold at which replenishment should be triggered.
 
       - name: target_stock_level
         sql: TargetStockLevel
         type: number
+        description: Desired optimal inventory level maintained after replenishment.
 
       - name: last_cost_price
         sql: LastCostPrice
         type: number
+        description: Most recent unit purchase cost recorded at the time of the transaction.
 
       - name: quantity_on_hand
         sql: QuantityOnHand
         type: number
+        description: Point-in-time unit balance remaining in stock immediately following the transaction.
 
       - name: stock_holding_value
         sql: StockHoldingValue
         type: number
+        description: Monetary valuation of the on-hand stock balance at the time of the transaction.
 
       - name: reorder_deficit
         sql: ReorderDeficit
         type: number
+        description: Unit shortfall below the target or reorder threshold at the time of the transaction.
 
     measures:
       - name: transaction_count
         type: count
+        description: Total number of inventory transaction events recorded.
 
       - name: total_transaction_quantity
         sql: TransactionQuantity
         type: sum
+        description: Net sum of units moved across transactions (positive for inflows, negative for outflows).
 
       - name: avg_transaction_quantity
         sql: TransactionQuantity
         type: avg
+        description: Average number of units moved per transaction.
 
       - name: total_quantity_on_hand
         sql: QuantityOnHand
         type: sum
+        description: Sum of recorded on-hand quantities across selected transaction rows (use with single-snapshot filters).
 
       - name: avg_quantity_on_hand
         sql: QuantityOnHand
         type: avg
+        description: Average on-hand unit balance recorded across selected transactions.
 
       - name: total_stock_holding_value
         sql: StockHoldingValue
         type: sum
+        description: Sum of recorded inventory holding values across selected transaction rows.
 
       - name: avg_stock_holding_value
         sql: StockHoldingValue
         type: avg
+        description: Average monetary stock holding value recorded per transaction snapshot.
 
       - name: total_reorder_deficit
         sql: ReorderDeficit
         type: sum
+        description: Sum of reorder unit deficits across selected transaction records.
 
       - name: avg_last_cost_price
         sql: LastCostPrice
         type: avg
+        description: Average unit cost price across selected inventory transactions.
 
     pre_aggregations:
       - name: daily_stock_by_item_supplier

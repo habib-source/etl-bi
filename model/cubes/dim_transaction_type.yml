@@ -2,17 +2,21 @@ cubes:
   - name: dim_transaction_type
     sql_table: dw.DimTransactionType
     public: false
+    description: Classification of inventory movement events (e.g., stock receipt, customer issue, adjustment).
 
     dimensions:
       - name: transaction_type_key
         sql: TransactionTypeKey
         type: number
         primary_key: true
+        description: Surrogate primary key uniquely identifying the transaction type.
 
       - name: transaction_type_id
         sql: TransactionTypeID
         type: number
+        description: Natural business identifier for the transaction type from the source system.
 
       - name: transaction_type_name
         sql: TransactionTypeName
         type: string
+        description: Descriptive name of the inventory transaction type (e.g., Stock Receipt, Customer Invoice, Stock Adjustment).

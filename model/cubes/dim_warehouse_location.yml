@@ -2,17 +2,21 @@ cubes:
   - name: dim_warehouse_location
     sql_table: dw.DimWarehouseLocation
     public: false
+    description: Physical warehouse storage bins and temperature-zone classifications.
 
     dimensions:
       - name: warehouse_location_key
         sql: WarehouseLocationKey
         type: number
         primary_key: true
+        description: Surrogate primary key uniquely identifying the warehouse storage location.
 
       - name: bin_location
         sql: BinLocation
         type: string
+        description: Warehouse aisle, rack, or bin identifier where stock is stored.
 
       - name: is_chiller_stock
         sql: IsChillerStock
         type: boolean
+        description: Indicates whether this warehouse bin is located in a refrigerated chiller zone.

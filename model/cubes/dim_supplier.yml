@@ -2,41 +2,51 @@ cubes:
   - name: dim_supplier
     sql_table: dw.DimSupplier
     public: false
+    description: Vendor and supplier master attributes including category, delivery logistics, payment terms, and location.
 
     dimensions:
       - name: supplier_key
         sql: SupplierKey
         type: number
         primary_key: true
+        description: Surrogate primary key uniquely identifying the supplier record in the warehouse.
 
       - name: supplier_id
         sql: SupplierID
         type: number
+        description: Natural business identifier for the supplier from the source system.
 
       - name: supplier_name
         sql: SupplierName
         type: string
+        description: Registered business name of the supplier.
 
       - name: supplier_category_name
         sql: SupplierCategoryName
         type: string
+        description: Industry or procurement classification of the supplier.
 
       - name: delivery_method_name
         sql: DeliveryMethodName
         type: string
+        description: Default shipping or freight method used by the supplier (e.g., Courier, Road Freight).
 
       - name: payment_days
         sql: PaymentDays
         type: number
+        description: Agreed net payment terms in days for supplier invoices.
 
       - name: delivery_city_name
         sql: DeliveryCityName
         type: string
+        description: City where the supplier's physical delivery or dispatch facility is located.
 
       - name: postal_city_name
         sql: PostalCityName
         type: string
+        description: City associated with the supplier's billing or postal mailing address.
 
       - name: website_url
         sql: WebsiteURL
         type: string
+        description: Official website URL of the supplier.

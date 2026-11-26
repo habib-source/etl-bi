@@ -2,53 +2,66 @@ cubes:
   - name: dim_date
     sql_table: dw.DimDate
     public: false
+    description: Calendar date dimension for slicing transactions by day, week, month, quarter, and year.
 
     dimensions:
       - name: date_key
         sql: DateKey
         type: number
         primary_key: true
+        description: Surrogate integer primary key for the calendar date (typically YYYYMMDD).
 
       - name: full_date
         sql: FullDate
         type: time
+        description: Full calendar date value.
 
       - name: day_of_month
         sql: DayOfMonth
         type: number
+        description: Day number within the month (1 to 31).
 
       - name: day_name
         sql: DayName
         type: string
+        description: Full name of the weekday (e.g., Monday, Tuesday).
 
       - name: day_of_week
         sql: DayOfWeek
         type: number
+        description: Numeric day of the week.
 
       - name: week_of_year
         sql: WeekOfYear
         type: number
+        description: ISO or calendar week number within the year (1 to 53).
 
       - name: month_number
         sql: MonthNumber
         type: number
+        description: Numeric month of the year (1 to 12).
 
       - name: month_name
         sql: MonthName
         type: string
+        description: Full name of the calendar month (e.g., January, February).
 
       - name: quarter_number
         sql: QuarterNumber
         type: number
+        description: Numeric calendar quarter (1 to 4).
 
       - name: quarter_name
         sql: QuarterName
         type: string
+        description: Formatted calendar quarter label (e.g., Q1, Q2).
 
       - name: calendar_year
         sql: CalendarYear
         type: number
+        description: Four-digit calendar year.
 
       - name: is_weekend
         sql: IsWeekend
         type: boolean
+        description: Indicates whether the date falls on a weekend (true) or weekday (false).
