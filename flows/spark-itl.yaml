@@ -2,16 +2,19 @@ id: external_spark_etl
 namespace: data.pipelines
 
 tasks:
-  - id: submit_cluster_job
-    type: io.kestra.plugin.spark.SparkSubmit
+  - id: submit_client_job
+    type: io.kestra.plugin.spark.PythonSubmit
+    containerImage: spark:4.2.0-scala2.13-java25-python3-ubuntu
     master: spark://spark:7077
-    deployMode: CLUSTER
-    mainResource: /opt/spark/work-dir/src/etl.py
+    mainScript: "{{ read('WideWorldImporters-etl/src/etl.py') }}"
     configurations:
+      spark.jars.ivy: /tmp/.ivy2
       spark.jars.packages: com.microsoft.sqlserver:mssql-jdbc:13.6.2.jre11
-    resume: true
-
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      user: root
+      networkMode: "etl"
 triggers:
-  - id: daily_schedule
+  - id: 3min_schedule
     type: io.kestra.plugin.core.trigger.Schedule
     cron: "*/3 * * * *"

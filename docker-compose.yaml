@@ -10,8 +10,6 @@ services:
       - ./WideWorldImporters-etl/:/opt/spark/work-dir
     ports:
       - "8080:8080"
-    environment:
-      - SPARK_PUBLIC_DNS=localhost
   spark-worker:
     restart: always
     image: spark:4.2.0-scala2.13-java25-python3-ubuntu
@@ -24,7 +22,6 @@ services:
     environment:
       - SPARK_WORKER_CORES=3
       - SPARK_WORKER_MEMORY=2g
-      - SPARK_PUBLIC_DNS=localhost
 # docker exec -it spark-runner /opt/spark/bin/spark-submit --master spark://spark:7077 --packages com.microsoft.sqlserver:mssql-jdbc:13.6.2.jre11 --conf spark.jars.ivy=/tmp/.ivy2 src/etl.py
   spark-runner:
     restart: always
@@ -51,16 +48,34 @@ services:
       retries: 10
 
   kestra:
-    image: kestra/kestra:latest
+    image: kestra/kestra:v2.0
+    pull_policy: always
+    restart: unless-stopped
+    stop_grace_period: 6m
+    user: "root"
     command: server standalone
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost:8081/health >/dev/null || wget -q -O /dev/null http://localhost:8081/health || (exec 3<>/dev/tcp/127.0.0.1/8081) >/dev/null 2>&1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     volumes:
       - kestra-data:/app/storage
       - /tmp/kestra-wd:/tmp/kestra-wd
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       KESTRA_CONFIGURATION: |
+        micronaut:
+          server:
+            port: 8084
         datasources:
           postgres:
             url: jdbc:postgresql://postgres:5432/kestra
@@ -68,6 +83,10 @@ services:
             username: kestra
             password: kestra_password
         kestra:
+          server:
+            basic-auth:
+              username: 'habib@etl.com'
+              password: 'DFAFa6g}X~"Tx&,'
           repository:
             type: postgres
           storage:
@@ -79,36 +98,32 @@ services:
           tasks:
             tmp-dir:
               path: /tmp/kestra-wd/tmp
+    ports:
+      - "8084:8084"
   flow-loader:
-    image: curlimages/curl:latest
+    image: kestra/kestractl:3.12
+    restart: "no"
     depends_on:
-      - kestra
+      kestra:
+        condition: service_healthy
     volumes:
       - ./flows:/flows:ro
+      - ./WideWorldImporters-etl:/WideWorldImporters-etl:ro
+    environment:
+      KESTRACTL_HOST: "http://kestra:8084"
+      KESTRACTL_TENANT: "main"
+      KESTRACTL_USERNAME: "habib@etl.com"
+      KESTRACTL_PASSWORD: 'DFAFa6g}X~"Tx&,'
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        until curl -sf http://kestra:8080/ping > /dev/null 2>&1; do
-          echo "Waiting for Kestra API..."
-          sleep 2
-        done
-        for f in /flows/*.yml /flows/*.yaml; do
-          [ -e "$$f" ] || continue
-          echo "Deploying $$f..."
-          curl -sf -X POST http://kestra:8080/api/v1/main/flows \
-            -H "Content-Type: application/x-yaml" \
-            --data-binary "@$$f"
-        done
-        echo "Flow deployment complete."
-    restart: "no"
-
-
-
-# docker exec -it wide-world-importers-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Dev4oddJob" -C -W -Q "USE WideWorldImporters; SELECT TABLE_SCHEMA + '.' + TABLE_NAME AS TableName, STRING_AGG(COLUMN_NAME, ', ') WITHIN GROUP (ORDER BY ORDINAL_POSITION) AS Columns FROM INFORMATION_SCHEMA.COLUMNS GROUP BY TABLE_SCHEMA, TABLE_NAME ORDER BY TABLE_SCHEMA, TABLE_NAME;"
-
-
-# test: docker exec -i wide-world-importers-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Dev4oddJob" -C -b -W < seed_wwi.sql
-# clean up test: docker exec -i wide-world-importers-db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Dev4oddJob" -C -b -W < cleanup_wwi.sql
+        set -e
+        echo "Uploading etl.py to namespace data.pipelines..."
+        kestractl nsfiles upload data.pipelines /WideWorldImporters-etl/src/etl.py \
+          --override --fail-fast
+        echo "Deploying flows from /flows..."
+        kestractl flows deploy /flows --override --fail-fast
+        echo "Deployment complete."
   wide-world-importers-db:
     restart: always
     build:
@@ -120,7 +135,6 @@ services:
       MSSQL_PID: EnterpriseDeveloper
     volumes:
       - db:/var/opt/mssql
-
 
   data-warehouse-init:
     container_name: data-warehouse-init
@@ -180,7 +194,7 @@ services:
       CUBEJS_DB_NAME: WideWorldImportersDW
       CUBEJS_DB_USER: sa
       CUBEJS_DB_PASS: Dev4oddJob
-      # pg endpoint for superset
+      # pg endpoint
       CUBEJS_PG_SQL_PORT: 15432
       CUBEJS_SQL_USER: superset
       CUBEJS_SQL_PASSWORD: Dev4oddJob
@@ -215,10 +229,12 @@ services:
       PASSWORD_dw: "Dev4oddJob"
       ENGINE_dw: "mssql@dbgate-plugin-mssql"
 
-
 volumes:
   db:
   dw:
   dbgate_data:
   postgres-data:
   kestra-data:
+networks:
+  default:
+    name: etl
