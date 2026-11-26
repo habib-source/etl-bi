@@ -22,7 +22,6 @@ services:
     environment:
       - SPARK_WORKER_CORES=3
       - SPARK_WORKER_MEMORY=2g
-# docker exec -it spark-runner /opt/spark/bin/spark-submit --master spark://spark:7077 --packages com.microsoft.sqlserver:mssql-jdbc:13.6.2.jre11 --conf spark.jars.ivy=/tmp/.ivy2 src/etl.py
   spark-runner:
     restart: always
     image: spark:4.2.0-scala2.13-java25-python3-ubuntu
@@ -48,6 +47,7 @@ services:
       retries: 10
 
   kestra:
+    container_name: kestra
     image: kestra/kestra:v2.0
     pull_policy: always
     restart: unless-stopped
@@ -85,7 +85,7 @@ services:
         kestra:
           server:
             basic-auth:
-              username: 'habib@etl.com'
+              username: 'admin@etl.com'
               password: 'DFAFa6g}X~"Tx&,'
           repository:
             type: postgres
@@ -101,6 +101,7 @@ services:
     ports:
       - "8084:8084"
   flow-loader:
+    container_name: flow-loader
     image: kestra/kestractl:3.12
     restart: "no"
     depends_on:
@@ -112,7 +113,7 @@ services:
     environment:
       KESTRACTL_HOST: "http://kestra:8084"
       KESTRACTL_TENANT: "main"
-      KESTRACTL_USERNAME: "habib@etl.com"
+      KESTRACTL_USERNAME: "admin@etl.com"
       KESTRACTL_PASSWORD: 'DFAFa6g}X~"Tx&,'
     entrypoint: ["/bin/sh", "-c"]
     command:
@@ -127,7 +128,7 @@ services:
   wide-world-importers-db:
     restart: always
     build:
-      context: ./
+      context: ./docker/wwidb
     container_name: wide-world-importers-db
     environment:
       ACCEPT_EULA: Y

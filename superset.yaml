@@ -28,7 +28,7 @@ x-superset-image: &superset-image apache/superset:${TAG:-latest}
 x-superset-volumes:
   &superset-volumes # /app/pythonpath_docker will be appended to the PYTHONPATH in the final container
   - superset_home:/app/superset_home
-  - ./docker/requirements-local.txt:/app/docker/requirements-local.txt
+  - ./docker/superset/requirements-local.txt:/app/docker/requirements-local.txt
 x-superset-environment: &superset-environment
   # Tagged images must use their bundled packages rather than host bind mounts.
   DEV_MODE: "false"
@@ -43,9 +43,9 @@ services:
 
   db:
     env_file:
-      - path: docker/.env # default
+      - path: docker/superset/.env # default
         required: true
-      - path: docker/.env-local # optional override
+      - path: docker/superset/.env-local # optional override
         required: false
     image: postgres:17
     container_name: superset_db
@@ -55,9 +55,9 @@ services:
 
   superset:
     env_file:
-      - path: docker/.env # default
+      - path: docker/superset/.env # default
         required: true
-      - path: docker/.env-local # optional override
+      - path: docker/superset/.env-local # optional override
         required: false
     environment: *superset-environment
     image: *superset-image
@@ -84,9 +84,9 @@ services:
           --database_name "Cube Core" \
           --uri "postgresql://superset:Dev4oddJob@cube:15432/db"
     env_file:
-      - path: docker/.env # default
+      - path: docker/superset/.env # default
         required: true
-      - path: docker/.env-local # optional override
+      - path: docker/superset/.env-local # optional override
         required: false
     environment: *superset-environment
     depends_on:
@@ -104,9 +104,9 @@ services:
     container_name: superset_worker
     command: ["/app/docker/docker-bootstrap.sh", "worker"]
     env_file:
-      - path: docker/.env # default
+      - path: docker/superset/.env # default
         required: true
-      - path: docker/.env-local # optional override
+      - path: docker/superset/.env-local # optional override
         required: false
     environment: *superset-environment
     restart: unless-stopped
@@ -127,9 +127,9 @@ services:
     container_name: superset_worker_beat
     command: ["/app/docker/docker-bootstrap.sh", "beat"]
     env_file:
-      - path: docker/.env # default
+      - path: docker/superset/.env # default
         required: true
-      - path: docker/.env-local # optional override
+      - path: docker/superset/.env-local # optional override
         required: false
     environment: *superset-environment
     restart: unless-stopped

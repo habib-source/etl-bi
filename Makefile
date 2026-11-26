@@ -29,8 +29,8 @@ db-pp:
 
 etl-test:
 	docker exec -i $(DB_CONTAINER) $(SQLCMD) \
-		-S $(DB_HOST) -U $(DB_USER) -P "$(DB_PASS)" -d $(DB_NAME) -C -b -W < seed_wwi.sql
+		-S $(DB_HOST) -U $(DB_USER) -P "$(DB_PASS)" -d $(DB_NAME) -C -b -W < ./test/seed_wwi.sql
 
 clean-db:
 	docker exec -i $(DB_CONTAINER) $(SQLCMD) \
-		-S $(DB_HOST) -U $(DB_USER) -P "$(DB_PASS)" -d $(DB_NAME) -C -b -W < cleanup_wwi.sql
+		-S $(DB_HOST) -U $(DB_USER) -P "$(DB_PASS)" -d $(DB_NAME) -C -b -W < ./test/cleanup_wwi.sql
