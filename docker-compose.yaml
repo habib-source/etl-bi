@@ -1,18 +1,25 @@
 include:
   - superset.yaml
+
+x-spark-common: &spark-common
+  restart: always
+  image: spark:4.2.0-scala2.13-java25-python3-ubuntu
+
+x-mssql-env: &mssql-env
+  ACCEPT_EULA: Y
+  MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+  MSSQL_PID: EnterpriseDeveloper
+
 services:
   spark:
-    restart: always
-    image: spark:4.2.0-scala2.13-java25-python3-ubuntu
+    <<: *spark-common
     container_name: spark
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
-    volumes:
-      - ./WideWorldImporters-etl/:/opt/spark/work-dir
     ports:
       - "8080:8080"
+
   spark-worker:
-    restart: always
-    image: spark:4.2.0-scala2.13-java25-python3-ubuntu
+    <<: *spark-common
     container_name: spark-worker
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark:7077
     ports:
@@ -22,22 +29,20 @@ services:
     environment:
       - SPARK_WORKER_CORES=3
       - SPARK_WORKER_MEMORY=2g
+
   spark-runner:
-    restart: always
-    image: spark:4.2.0-scala2.13-java25-python3-ubuntu
+    <<: *spark-common
     container_name: spark-runner
     command: /bin/bash
     stdin_open: true
     tty: true
-    volumes:
-      - ./WideWorldImporters-etl:/opt/spark/work-dir
 
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_DB: kestra
-      POSTGRES_USER: kestra
-      POSTGRES_PASSWORD: kestra_password
+      POSTGRES_DB: ${KESTRA_DB_NAME}
+      POSTGRES_USER: ${KESTRA_DB_USER}
+      POSTGRES_PASSWORD: ${KESTRA_DB_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -78,15 +83,15 @@ services:
             port: 8084
         datasources:
           postgres:
-            url: jdbc:postgresql://postgres:5432/kestra
+            url: jdbc:postgresql://postgres:5432/${KESTRA_DB_NAME}
             driverClassName: org.postgresql.Driver
-            username: kestra
-            password: kestra_password
+            username: ${KESTRA_DB_USER}
+            password: ${KESTRA_DB_PASSWORD}
         kestra:
           server:
             basic-auth:
-              username: 'admin@etl.com'
-              password: 'DFAFa6g}X~"Tx&,'
+              username: '${KESTRA_ADMIN_USER}'
+              password: '${KESTRA_ADMIN_PASSWORD}'
           repository:
             type: postgres
           storage:
@@ -100,6 +105,7 @@ services:
               path: /tmp/kestra-wd/tmp
     ports:
       - "8084:8084"
+
   flow-loader:
     container_name: flow-loader
     image: kestra/kestractl:3.12
@@ -113,8 +119,8 @@ services:
     environment:
       KESTRACTL_HOST: "http://kestra:8084"
       KESTRACTL_TENANT: "main"
-      KESTRACTL_USERNAME: "admin@etl.com"
-      KESTRACTL_PASSWORD: 'DFAFa6g}X~"Tx&,'
+      KESTRACTL_USERNAME: ${KESTRA_ADMIN_USER}
+      KESTRACTL_PASSWORD: ${KESTRA_ADMIN_PASSWORD}
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -125,15 +131,14 @@ services:
         echo "Deploying flows from /flows..."
         kestractl flows deploy /flows --override --fail-fast
         echo "Deployment complete."
+
   wide-world-importers-db:
     restart: always
     build:
       context: ./docker/wwidb
     container_name: wide-world-importers-db
     environment:
-      ACCEPT_EULA: Y
-      MSSQL_SA_PASSWORD: Dev4oddJob
-      MSSQL_PID: EnterpriseDeveloper
+      <<: *mssql-env
     volumes:
       - db:/var/opt/mssql
 
@@ -143,22 +148,20 @@ services:
       context: ./docker/dw/
     command: ./entrypoint.sh
     environment:
-      ACCEPT_EULA: Y
-      MSSQL_SA_PASSWORD: Dev4oddJob
-      MSSQL_PID: EnterpriseDeveloper
+      <<: *mssql-env
     depends_on:
       - data-warehouse
+
   data-warehouse:
     restart: always
     container_name: data-warehouse
     image: mcr.microsoft.com/mssql/server:2025-CU9-ubuntu-24.04
     environment:
-      ACCEPT_EULA: Y
-      MSSQL_SA_PASSWORD: Dev4oddJob
-      MSSQL_PID: EnterpriseDeveloper
-      MSSQL_DB: WideWorldImportersDW
+      <<: *mssql-env
+      MSSQL_DB: ${MSSQL_DW_DB}
     volumes:
       - dw:/var/opt/mssql
+
   evidence:
     image: evidencedev/serve:0.12.2
     user: "1000:998"
@@ -166,17 +169,18 @@ services:
       - "3001:3001"
     environment:
       PORT: 3001
-      EVIDENCE_BASIC_USER: admin
-      EVIDENCE_BASIC_PASSWORD: admin
+      EVIDENCE_BASIC_USER: ${EVIDENCE_BASIC_USER}
+      EVIDENCE_BASIC_PASSWORD: ${EVIDENCE_BASIC_PASSWORD}
       CUBE_HOST: cube
       CUBE_DATABASE: cube
-      CUBE_USER: superset
-      CUBE_PASSWORD: Dev4oddJob
+      CUBE_USER: ${CUBE_SQL_USER}
+      CUBE_PASSWORD: ${CUBE_SQL_PASSWORD}
       CUBE_SSLMODE: disable
     volumes:
       - ./my-inventory-dashboard:/project
     depends_on:
       - cube
+
   cube:
     container_name: cube
     restart: always
@@ -192,13 +196,14 @@ services:
       CUBEJS_DB_TYPE: mssql
       CUBEJS_DB_HOST: data-warehouse
       CUBEJS_DB_PORT: 1433
-      CUBEJS_DB_NAME: WideWorldImportersDW
+      CUBEJS_DB_NAME: ${MSSQL_DW_DB}
       CUBEJS_DB_USER: sa
-      CUBEJS_DB_PASS: Dev4oddJob
+      CUBEJS_DB_PASS: ${MSSQL_SA_PASSWORD}
       # pg endpoint
       CUBEJS_PG_SQL_PORT: 15432
-      CUBEJS_SQL_USER: superset
-      CUBEJS_SQL_PASSWORD: Dev4oddJob
+      CUBEJS_SQL_USER: ${CUBE_SQL_USER}
+      CUBEJS_SQL_PASSWORD: ${CUBE_SQL_PASSWORD}
+
   dbgate:
     image: dbgate/dbgate:latest
     container_name: dbgate
@@ -211,23 +216,20 @@ services:
     volumes:
       - dbgate_data:/root/.dbgate
     environment:
-      # LOGIN: "admin"
-      # PASSWORD: "WebUIPassword123!"
-
       CONNECTIONS: "wwdb,dw"
 
       LABEL_wwdb: "wide-world-importers-db SQL Server"
       SERVER_wwdb: "wide-world-importers-db"
       PORT_wwdb: "1433"
       USER_wwdb: "sa"
-      PASSWORD_wwdb: "Dev4oddJob"
+      PASSWORD_wwdb: ${MSSQL_SA_PASSWORD}
       ENGINE_wwdb: "mssql@dbgate-plugin-mssql"
 
       LABEL_dw: "data-warehouse SQL Server"
       SERVER_dw: "data-warehouse"
       PORT_dw: "1433"
       USER_dw: "sa"
-      PASSWORD_dw: "Dev4oddJob"
+      PASSWORD_dw: ${MSSQL_SA_PASSWORD}
       ENGINE_dw: "mssql@dbgate-plugin-mssql"
 
 volumes:
@@ -236,6 +238,7 @@ volumes:
   dbgate_data:
   postgres-data:
   kestra-data:
+
 networks:
   default:
     name: etl

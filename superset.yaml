@@ -18,21 +18,37 @@
 # -----------------------------------------------------------------------
 # We don't support docker compose for production environments.
 # If you choose to use this type of deployment make sure to
-# create you own docker environment file (docker/.env) with your own
+# create your own docker environment file (docker/.env) with your own
 # unique random secure passwords and SECRET_KEY.
 #
 # For verbose logging during development:
 # - Set SUPERSET_LOG_LEVEL=debug in docker/.env-local for detailed Superset logs
 # -----------------------------------------------------------------------
 x-superset-image: &superset-image apache/superset:${TAG:-latest}
-x-superset-volumes:
-  &superset-volumes # /app/pythonpath_docker will be appended to the PYTHONPATH in the final container
+
+x-superset-volumes: &superset-volumes
+  # /app/pythonpath_docker will be appended to the PYTHONPATH in the final container
   - superset_home:/app/superset_home
   - ./docker/superset/requirements-local.txt:/app/docker/requirements-local.txt
   - ./superset-dashboards/:/app/import/
+
+x-superset-env-files: &superset-env-files
+  - path: docker/superset/.env # default
+    required: true
+  - path: docker/superset/.env-local # optional override
+    required: false
+
 x-superset-environment: &superset-environment
   # Tagged images must use their bundled packages rather than host bind mounts.
   DEV_MODE: "false"
+
+x-superset-common: &superset-common
+  image: *superset-image
+  env_file: *superset-env-files
+  environment: *superset-environment
+  volumes: *superset-volumes
+  user: "root"
+  restart: unless-stopped
 
 services:
   redis:
@@ -43,11 +59,7 @@ services:
       - redis:/data
 
   db:
-    env_file:
-      - path: docker/superset/.env # default
-        required: true
-      - path: docker/superset/.env-local # optional override
-        required: false
+    env_file: *superset-env-files
     image: postgres:17
     container_name: superset_db
     restart: unless-stopped
@@ -55,27 +67,22 @@ services:
       - db_home:/var/lib/postgresql/data
 
   superset:
-    env_file:
-      - path: docker/superset/.env # default
-        required: true
-      - path: docker/superset/.env-local # optional override
-        required: false
-    environment: *superset-environment
-    image: *superset-image
+    <<: *superset-common
     container_name: superset_app
     command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
-    user: "root"
-    restart: unless-stopped
     ports:
       - 8088:8088
     depends_on:
       superset-init:
         condition: service_completed_successfully
-    volumes: *superset-volumes
 
   superset-init:
-    image: *superset-image
+    <<: *superset-common
+    restart: "no"
     container_name: superset_init
+    environment:
+      <<: *superset-environment
+      CUBE_SQL_PASSWORD: ${CUBE_SQL_PASSWORD}
     command:
       - bash
       - -c
@@ -86,50 +93,34 @@ services:
             echo "Found dashboard package ($$f), importing..."
             TMP_ZIP="/tmp/$$(basename "$$f")"
             python3 -c '
-        import sys, zipfile
-        src, dst, pw = sys.argv[1], sys.argv[2], sys.argv[3]
+        import os, sys, zipfile
+        src, dst = sys.argv[1], sys.argv[2]
+        pw = os.environ["CUBE_SQL_PASSWORD"]
         with zipfile.ZipFile(src, "r") as zin, zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED) as zout:
             for item in zin.infolist():
                 data = zin.read(item.filename)
                 if item.filename.endswith("databases/Cube_Core.yaml"):
                     data = data.decode("utf-8").replace(":XXXXXXXXXX@", f":{pw}@").encode("utf-8")
                 zout.writestr(item, data)
-        ' "$$f" "$$TMP_ZIP" "Dev4oddJob"
+        ' "$$f" "$$TMP_ZIP"
             superset import-dashboards -p "$$TMP_ZIP" -u admin
             rm -f "$$TMP_ZIP"
         done
-    env_file:
-      - path: docker/superset/.env # default
-        required: true
-      - path: docker/superset/.env-local # optional override
-        required: false
-    environment: *superset-environment
     depends_on:
       db:
         condition: service_started
       redis:
         condition: service_started
-    user: "root"
-    volumes: *superset-volumes
     healthcheck:
       disable: true
 
   superset-worker:
-    image: *superset-image
+    <<: *superset-common
     container_name: superset_worker
     command: ["/app/docker/docker-bootstrap.sh", "worker"]
-    env_file:
-      - path: docker/superset/.env # default
-        required: true
-      - path: docker/superset/.env-local # optional override
-        required: false
-    environment: *superset-environment
-    restart: unless-stopped
     depends_on:
       superset-init:
         condition: service_completed_successfully
-    user: "root"
-    volumes: *superset-volumes
     healthcheck:
       test:
         [
@@ -138,21 +129,12 @@ services:
         ]
 
   superset-worker-beat:
-    image: *superset-image
+    <<: *superset-common
     container_name: superset_worker_beat
     command: ["/app/docker/docker-bootstrap.sh", "beat"]
-    env_file:
-      - path: docker/superset/.env # default
-        required: true
-      - path: docker/superset/.env-local # optional override
-        required: false
-    environment: *superset-environment
-    restart: unless-stopped
     depends_on:
       superset-init:
         condition: service_completed_successfully
-    user: "root"
-    volumes: *superset-volumes
     healthcheck:
       disable: true
 
