@@ -1,0 +1,138 @@
+direction: right
+
+vars: {
+  d2-config: {
+    layout-engine: elk
+  }
+}
+
+style: {
+  fill: "#F8FAFC"
+}
+
+# --- Orchestration & Deployment ---
+orchestration: "Orchestration & Deployment" {
+  style.fill: "#EFF6FF"
+  style.stroke: "#3B82F6"
+
+  kestra: "Kestra\n(:8084)" {
+    shape: hexagon
+    style.fill: "#DBEAFE"
+  }
+  kestra_db: "Kestra Metadata DB\n(Postgres 16)" {
+    shape: cylinder
+    style.fill: "#E0E7FF"
+  }
+  flow_loader: "flow-loader\n(kestractl)" {
+    shape: step
+    style.fill: "#E0F2FE"
+  }
+
+  kestra <-> kestra_db: "state & queue"
+  flow_loader -> kestra: "uploads etl.py &\ndeploys flows"
+}
+
+# --- Batch ETL Engine ---
+etl_engine: "Spark Batch ETL (Spark 4.2)" {
+  style.fill: "#FFF7ED"
+  style.stroke: "#F97316"
+
+  spark_runner: "spark-runner\n(runs etl.py)" {
+    style.fill: "#FFEDD5"
+  }
+  spark_master: "Spark Master\n(:8080 / :7077)" {
+    shape: diamond
+    style.fill: "#FED7AA"
+  }
+  spark_worker: "Spark Worker\n(3 cores, 2g)" {
+    style.fill: "#FED7AA"
+  }
+
+  spark_master <-> spark_worker: "executes tasks"
+  spark_runner -> spark_master: "submits batch jobs"
+}
+
+# --- Storage Layer ---
+storage: "Data & Warehouse Storage (MSSQL)" {
+  style.fill: "#F0FDF4"
+  style.stroke: "#22C55E"
+
+  wwi_db: "WideWorldImporters DB\n(wide-world-importers-db:1433)" {
+    shape: cylinder
+    style.fill: "#DCFCE7"
+  }
+  dw_init: "data-warehouse-init\n(entrypoint.sh)" {
+    shape: step
+    style.fill: "#ECFDF5"
+  }
+  dw_db: "Data Warehouse\n(MSSQL 2025 :1433)" {
+    shape: cylinder
+    style.fill: "#BBF7D0"
+  }
+
+  dw_init -> dw_db: "initializes schema"
+}
+
+# --- Semantic Layer ---
+semantic: "Semantic Layer" {
+  style.fill: "#FAF5FF"
+  style.stroke: "#A855F7"
+
+  cube: "Cube Core\n(:4000 REST | :15432 PG SQL)" {
+    shape: hexagon
+    style.fill: "#F3E8FF"
+  }
+}
+
+# --- BI & Inspection ---
+bi_layer: "BI & Exploration" {
+  style.fill: "#FEFCE8"
+  style.stroke: "#EAB308"
+
+  superset: "Apache Superset\n(:8088)" {
+    style.fill: "#FEF08A"
+  }
+  superset_init: "superset-init\n(imports dashboards)" {
+    shape: step
+    style.fill: "#FEF9C3"
+  }
+  superset_meta: "Superset Metadata DB\n(Postgres 17)" {
+    shape: cylinder
+    style.fill: "#FEF9C3"
+  }
+  redis: "Redis 7\n(cache & broker)" {
+    shape: cylinder
+    style.fill: "#FEF9C3"
+  }
+  celery_worker: "superset-worker\n(Celery)" {
+    style.fill: "#FEF9C3"
+  }
+  celery_beat: "superset-worker-beat\n(scheduler)" {
+    style.fill: "#FEF9C3"
+  }
+
+  evidence: "Evidence\n(:3001)" {
+    style.fill: "#FDE047"
+  }
+  dbgate: "DBGate\n(:3000)" {
+    style.fill: "#FEF3C7"
+  }
+
+  superset_init -> superset: "bootstraps & imports"
+  superset <-> superset_meta: "metadata"
+  superset <-> redis: "cache / queue"
+  celery_worker <-> redis: "async tasks"
+  celery_beat -> redis: "scheduled jobs"
+}
+
+# --- End-to-End Data & Control Flows ---
+orchestration.kestra -> etl_engine.spark_runner: "triggers batch ETL"
+etl_engine.spark_runner -> storage.wwi_db: "extracts source data"
+etl_engine.spark_runner -> storage.dw_db: "loads transformed DW tables"
+
+storage.dw_db -> semantic.cube: "queries DW\n(MSSQL)"
+semantic.cube -> bi_layer.superset: "serves semantic layer\n(PG SQL wire :15432)"
+semantic.cube -> bi_layer.evidence: "serves metrics\n(PG SQL wire :15432)"
+
+bi_layer.dbgate -> storage.wwi_db: "inspects source"
+bi_layer.dbgate -> storage.dw_db: "inspects DW"
