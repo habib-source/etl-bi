@@ -120,7 +120,7 @@ services:
       - |
         set -e
         echo "Uploading etl.py to namespace data.pipelines..."
-        kestractl nsfiles upload data.pipelines /WideWorldImporters-etl/src/etl.py \
+        kestractl nsfiles upload data.pipelines /WideWorldImporters-etl/src/etl.py WideWorldImporters-etl/src/etl.py \
           --override --fail-fast
         echo "Deploying flows from /flows..."
         kestractl flows deploy /flows --override --fail-fast
