@@ -1,0 +1,70 @@
+digraph CubeCoreFlatView {
+    graph [
+        layout=dot;
+        fontname="Helvetica,Arial,sans-serif";
+        bgcolor="#FFFFFF";
+        rankdir=TB;
+    ];
+
+    node [
+        shape=plaintext;
+        fontname="Helvetica,Arial,sans-serif";
+        fontsize=9;
+    ];
+
+    // Single Table in the star-schema style with all 45 exposed elements and types
+    CubeView [
+        label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="1" BGCOLOR="#FFFFFF">
+            <TR><TD BGCOLOR="#0F766E"><FONT COLOR="#FFFFFF"><B>stock_transactions</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#F0FDFA"><B>Measures</B></TD></TR>
+            <TR><TD ALIGN="LEFT"><I>avg_last_cost_price : DECIMAL(18,2)</I></TD></TR>
+            <TR><TD ALIGN="LEFT"><I>avg_quantity_on_hand : DECIMAL(18,3)</I></TD></TR>
+            <TR><TD ALIGN="LEFT"><I>avg_stock_holding_value : DECIMAL(18,2)</I></TD></TR>
+            <TR><TD ALIGN="LEFT"><I>avg_transaction_quantity : DECIMAL(18,3)</I></TD></TR>
+            <TR><TD ALIGN="LEFT"><I>total_quantity_on_hand : DECIMAL(18,3)</I></TD></TR>
+            <TR><TD ALIGN="LEFT"><I>total_reorder_deficit : DECIMAL(18,3)</I></TD></TR>
+            <TR><TD ALIGN="LEFT"><I>total_stock_holding_value : DECIMAL(18,2)</I></TD></TR>
+            <TR><TD ALIGN="LEFT"><I>total_transaction_quantity : DECIMAL(18,3)</I></TD></TR>
+            <TR><TD ALIGN="LEFT"><I>transaction_count : BIGINT</I></TD></TR>
+            <TR><TD ALIGN="LEFT" BGCOLOR="#FEF9C3"><B>Dimensions &amp; Attributes</B></TD></TR>
+            <TR><TD ALIGN="LEFT">customer_id : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_date_calendar_year : SMALLINT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_date_day_name : VARCHAR(10)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_date_day_of_month : TINYINT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_date_full_date : DATE</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_date_is_weekend : BIT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_date_month_name : VARCHAR(10)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_date_month_number : TINYINT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_date_quarter_name : VARCHAR(6)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_date_quarter_number : TINYINT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_date_week_of_year : TINYINT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_brand : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_color_name : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_is_chiller_stock : BIT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_lead_time_days : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_outer_package_name : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_recommended_retail_price : DECIMAL(18,2)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_size : NVARCHAR(20)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_stock_group_names : NVARCHAR(400)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_stock_item_id : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_stock_item_name : NVARCHAR(100)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_unit_package_name : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_stock_item_unit_price : DECIMAL(18,2)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_supplier_delivery_city_name : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_supplier_delivery_method_name : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_supplier_payment_days : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_supplier_postal_city_name : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_supplier_supplier_category_name : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_supplier_supplier_id : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_supplier_supplier_name : NVARCHAR(100)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_transaction_type_transaction_type_id : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_transaction_type_transaction_type_name : NVARCHAR(50)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_warehouse_location_bin_location : NVARCHAR(20)</TD></TR>
+            <TR><TD ALIGN="LEFT">dim_warehouse_location_is_chiller_stock : BIT</TD></TR>
+            <TR><TD ALIGN="LEFT">invoice_id : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">purchase_order_id : INT</TD></TR>
+            <TR><TD ALIGN="LEFT">transaction_occurred_when : DATETIME2(7)</TD></TR>
+        </TABLE>
+    >];
+}
