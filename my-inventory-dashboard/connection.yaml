@@ -1,0 +1,8 @@
+type: cube
+host: ${CUBE_HOST}
+port: 15432
+user: ${CUBE_USER}
+password: ${CUBE_PASSWORD}
+database: ${CUBE_DATABASE}
+sslmode: ${CUBE_SSLMODE}
+schema: public
